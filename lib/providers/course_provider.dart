@@ -37,12 +37,10 @@ class CourseProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final results = await Future.wait([
-        repository.getCourses(),
-        repository.getStudent(),
-      ]);
-      _courses = results[0] as List<Course>;
-      _student = results[1] as Map<String, dynamic>;
+      final coursesFuture = repository.getCourses();
+      final studentFuture = repository.getStudent();
+      _courses = await coursesFuture;
+      _student = await studentFuture;
     } catch (e) {
       _error = e.toString();
     } finally {

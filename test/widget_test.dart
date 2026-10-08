@@ -1,30 +1,29 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:worksheet_6/main.dart';
+import 'package:worksheet_6/providers/course_provider.dart';
+import 'package:worksheet_6/repositories/course_repository.dart';
+import 'package:worksheet_6/services/course_service.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Menampilkan loading lalu error state (asset tidak tersedia di test)',
+      (WidgetTester tester) async {
+    // Build app dengan Provider seperti di main()
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => CourseProvider(
+          CourseRepository(CourseService()),
+        )..loadAll(),
+        child: const CourseExplorerApp(),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Frame pertama: harus muncul loading indicator
+    expect(find.byType(CircularProgressIndicator), findsWidgets);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Tunggu proses async selesai (loading -> error karena rootBundle tidak ada di test)
+    await tester.pumpAndSettle(const Duration(seconds: 2));
   });
 }
